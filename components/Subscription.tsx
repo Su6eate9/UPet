@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { Screen } from '../types';
+import Logo from './Logo';
 
 interface SubscriptionProps {
   navigate: (screen: Screen) => void;
@@ -13,7 +14,7 @@ const Subscription: React.FC<SubscriptionProps> = ({ navigate }) => {
         <button onClick={() => navigate('PROFILE')} className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800">
           <span className="material-symbols-outlined">close</span>
         </button>
-        <h2 className="text-xl font-black dark:text-white">Premium Plans</h2>
+        <Logo size="sm" />
         <div className="w-10" />
       </header>
 
@@ -22,7 +23,7 @@ const Subscription: React.FC<SubscriptionProps> = ({ navigate }) => {
           <div className="absolute -right-10 -bottom-10 size-48 bg-white/20 rounded-full blur-3xl"></div>
           <div className="relative z-10 text-center">
             <span className="material-symbols-outlined text-5xl mb-4">verified_user</span>
-            <h3 className="text-3xl font-black mb-2">CuidaPet Pro</h3>
+            <h3 className="text-3xl font-black mb-2">UPet Pro</h3>
             <p className="text-white/80 text-sm font-bold uppercase tracking-widest mb-6">Unlimited Care & Insights</p>
             <div className="text-4xl font-black mb-1">$9.99<span className="text-lg font-bold opacity-60">/mo</span></div>
           </div>
@@ -31,9 +32,9 @@ const Subscription: React.FC<SubscriptionProps> = ({ navigate }) => {
         <div className="space-y-4 px-2">
           <h4 className="font-bold dark:text-white text-lg">Pro Features:</h4>
           {[
-            { icon: 'auto_awesome', label: 'Advanced AI Health Diagnostics' },
+            { icon: 'auto_awesome', label: 'Advanced UPet AI Diagnostics' },
             { icon: 'group_add', label: 'Up to 10 Pets Profiles' },
-            { icon: 'support_agent', label: '24/7 Priority Vet Chat' },
+            { icon: 'support_agent', label: '24/7 Priority UPet Vet Chat' },
             { icon: 'cloud_upload', label: 'Unlimited Medical Records Cloud' },
           ].map((feat, i) => (
             <div key={i} className="flex items-center gap-4">
@@ -50,7 +51,7 @@ const Subscription: React.FC<SubscriptionProps> = ({ navigate }) => {
         <button className="w-full h-16 rounded-full bg-accent-orange text-white font-black text-lg shadow-xl shadow-accent-orange/20 active:scale-95 transition-all">
           Upgrade Now
         </button>
-        <p className="text-center text-[10px] text-text-muted mt-4">Cancel anytime. Terms & Privacy apply.</p>
+        <p className="text-center text-[10px] text-text-muted mt-4">Cancel anytime. UPet Terms apply.</p>
       </div>
     </div>
   );

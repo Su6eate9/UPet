@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Pet, Screen } from '../types';
 import { getPetInsight } from '../services/geminiService';
+import Logo from './Logo';
 
 interface DashboardProps {
   activePet: Pet;
@@ -29,7 +30,20 @@ const Dashboard: React.FC<DashboardProps> = ({ activePet, pets, setActivePet, na
   return (
     <div className="flex flex-col min-h-full pb-24 animate-in fade-in duration-500">
       <header className="flex items-center justify-between p-6 md:px-10 pb-2">
-        <div className="flex items-center gap-4">
+        <Logo size="md" />
+        <button 
+          onClick={() => navigate('NOTIFICATION_CENTER')}
+          className="flex items-center justify-center size-10 md:size-12 rounded-full bg-white dark:bg-card-dark shadow-sm text-text-main dark:text-white active:bg-gray-100 transition-colors relative"
+        >
+          <span className="material-symbols-outlined md:text-3xl">notifications</span>
+          {hasNewNotifications && (
+            <span className="absolute top-2 right-2.5 size-2.5 bg-accent-orange rounded-full border-2 border-white dark:border-card-dark animate-pulse" />
+          )}
+        </button>
+      </header>
+
+      <section className="px-6 md:px-10 py-4">
+         <div className="flex items-center gap-4">
           <div className="relative">
             <div 
               className="bg-center bg-no-repeat bg-cover rounded-full size-12 md:size-14 ring-2 ring-white dark:ring-card-dark shadow-sm"
@@ -41,19 +55,10 @@ const Dashboard: React.FC<DashboardProps> = ({ activePet, pets, setActivePet, na
             <h2 className="text-lg md:text-xl font-extrabold leading-tight tracking-tight text-text-main dark:text-white">
               Olá, Jéssica! 🐾
             </h2>
-            <p className="text-xs md:text-sm font-medium text-text-muted dark:text-gray-400">Bom dia</p>
+            <p className="text-xs md:text-sm font-medium text-text-muted dark:text-gray-400">Bom dia com o UPet</p>
           </div>
         </div>
-        <button 
-          onClick={() => navigate('NOTIFICATION_CENTER')}
-          className="flex items-center justify-center size-10 md:size-12 rounded-full bg-white dark:bg-card-dark shadow-sm text-text-main dark:text-white active:bg-gray-100 transition-colors relative"
-        >
-          <span className="material-symbols-outlined md:text-3xl">notifications</span>
-          {hasNewNotifications && (
-            <span className="absolute top-2 right-2.5 size-2.5 bg-accent-orange rounded-full border-2 border-white dark:border-card-dark animate-pulse" />
-          )}
-        </button>
-      </header>
+      </section>
 
       <section className="w-full overflow-x-auto px-6 md:px-10 py-4 no-scrollbar snap-x snap-mandatory">
         <div className="flex items-start gap-5 min-w-max pr-6">
@@ -212,7 +217,7 @@ const Dashboard: React.FC<DashboardProps> = ({ activePet, pets, setActivePet, na
                 {loadingInsight ? 'progress_activity' : 'auto_awesome'}
               </span>
               <div>
-                <p className="text-[10px] md:text-[11px] font-black text-primary uppercase tracking-[0.2em] mb-1.5">IA Smart Insight</p>
+                <p className="text-[10px] md:text-[11px] font-black text-primary uppercase tracking-[0.2em] mb-1.5">UPet Smart Insight</p>
                 <p className="text-sm md:text-base text-text-main dark:text-gray-300 leading-relaxed font-semibold">
                   {insight}
                 </p>

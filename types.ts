@@ -48,7 +48,8 @@ export type Screen =
   | 'SUBSCRIPTION'
   | 'NOTIFICATIONS'
   | 'NOTIFICATION_CENTER'
-  | 'SETTINGS';
+  | 'SETTINGS'
+  | 'BRAND_KIT';
 
 export type ActivityType = 'WALK' | 'FOOD' | 'WATER' | 'MEDS';
 

@@ -2,6 +2,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Screen, Pet, Message } from '../types';
 import { GoogleGenAI } from "@google/genai";
+import Logo from './Logo';
 
 interface ChatAssistantProps {
   activePet: Pet;
@@ -10,7 +11,7 @@ interface ChatAssistantProps {
 
 const ChatAssistant: React.FC<ChatAssistantProps> = ({ activePet, navigate }) => {
   const [messages, setMessages] = useState<Message[]>([
-    { role: 'model', text: `Oi! Eu sou o assistente IA do CuidaPet. Como posso ajudar com o **${activePet.name}** hoje?` }
+    { role: 'model', text: `Oi! Eu sou o assistente IA do **UPet**. Como posso ajudar com o **${activePet.name}** hoje?` }
   ]);
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
@@ -29,15 +30,14 @@ const ChatAssistant: React.FC<ChatAssistantProps> = ({ activePet, navigate }) =>
     setIsTyping(true);
 
     try {
-      // Cria a instância bem antes da chamada para garantir que process.env.API_KEY esteja populado
       const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
       const chat = ai.chats.create({
         model: 'gemini-3-flash-preview',
         config: {
-          systemInstruction: `Você é um veterinário assistente especialista em cuidados de animais domésticos para o aplicativo CuidaPet. 
+          systemInstruction: `Você é um veterinário assistente especialista em cuidados de animais domésticos para o aplicativo UPet. 
           O usuário está perguntando sobre seu pet chamado ${activePet.name}, que é um ${activePet.species} da raça ${activePet.breed}. 
           Use formatação rica: use **negrito** para termos importantes, crie listas com "-" se necessário, e organize a resposta em parágrafos curtos.
-          Seja amigável, conciso e sempre recomende um veterinário real se o problema parecer urgente.`
+          Seja amigável, conciso e sempre recomende um veterinário real se o problema parecer urgente. Reforce que você faz parte do ecossistema UPet.`
         }
       });
 
@@ -80,11 +80,9 @@ const ChatAssistant: React.FC<ChatAssistantProps> = ({ activePet, navigate }) =>
           <span className="material-symbols-outlined">arrow_back</span>
         </button>
         <div className="flex items-center gap-3">
-          <div className="size-10 rounded-full bg-primary flex items-center justify-center text-white">
-            <span className="material-symbols-outlined">smart_toy</span>
-          </div>
+          <Logo size="sm" showText={false} />
           <div>
-            <h2 className="font-bold dark:text-white leading-tight">PetTalk AI</h2>
+            <h2 className="font-bold dark:text-white leading-tight">UPet Talk AI</h2>
             <p className="text-[10px] text-primary font-bold uppercase tracking-widest">Especialista Online</p>
           </div>
         </div>
@@ -137,7 +135,7 @@ const ChatAssistant: React.FC<ChatAssistantProps> = ({ activePet, navigate }) =>
             <span className="material-symbols-outlined">send</span>
           </button>
         </div>
-        <p className="text-[10px] text-center text-gray-400 mt-2">Dica: Pergunte sobre dieta, sintomas ou truques!</p>
+        <p className="text-[10px] text-center text-gray-400 mt-2">Dica: Pergunte sobre dieta ou sintomas para o UPet!</p>
       </div>
     </div>
   );

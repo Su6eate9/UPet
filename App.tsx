@@ -18,6 +18,7 @@ import Subscription from './components/Subscription';
 import Notifications from './components/Notifications';
 import NotificationCenter from './components/NotificationCenter';
 import Settings from './components/Settings';
+import BrandKit from './components/BrandKit';
 
 const INITIAL_NOTIFICATIONS: AppNotification[] = [
   { id: '1', title: 'Meta Atingida! 🏆', description: 'Rex completou a meta de caminhada de hoje.', type: 'ACTIVITY', time: '5 min atrás', read: false },
@@ -138,12 +139,13 @@ const App: React.FC = () => {
       case 'NOTIFICATIONS': return <Notifications navigate={setCurrentScreen} />;
       case 'NOTIFICATION_CENTER': return <NotificationCenter navigate={setCurrentScreen} notifications={notifications} markAllAsRead={markAllAsRead} />;
       case 'SETTINGS': return <Settings navigate={setCurrentScreen} isDark={isDarkMode} onToggleTheme={() => setIsDarkMode(!isDarkMode)} />;
+      case 'BRAND_KIT': return <BrandKit navigate={setCurrentScreen} />;
       case 'ONBOARDING': return <Onboarding onComplete={handleAddPet} onBack={() => setCurrentScreen('HOME')} />;
       default: return <Dashboard activePet={activePet} pets={pets} setActivePet={(p) => setActivePetId(p.id)} navigate={setCurrentScreen} hasNewNotifications={notifications.some(n => !n.read)} />;
     }
   };
 
-  const showNav = !['ONBOARDING', 'ADD_RECORD', 'CHAT', 'SUBSCRIPTION', 'MY_PETS', 'NOTIFICATIONS', 'NOTIFICATION_CENTER', 'SETTINGS'].includes(currentScreen);
+  const showNav = !['ONBOARDING', 'ADD_RECORD', 'CHAT', 'SUBSCRIPTION', 'MY_PETS', 'NOTIFICATIONS', 'NOTIFICATION_CENTER', 'SETTINGS', 'BRAND_KIT'].includes(currentScreen);
 
   return (
     <div className="w-full h-dvh max-w-md md:max-w-4xl mx-auto bg-background-light dark:bg-background-dark relative md:shadow-2xl flex flex-col overflow-hidden transition-all duration-300">

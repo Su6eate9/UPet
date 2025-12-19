@@ -1,5 +1,5 @@
 {
-  "name": "CuidaPet - Smart Pet Companion",
+  "name": "UPet - Smart Pet Companion",
   "description": "A comprehensive pet management app featuring smart health tracking, AI insights, vaccination records, and clinic finding.",
   "requestFramePermissions": [
     "camera",
