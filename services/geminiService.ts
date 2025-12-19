@@ -4,18 +4,18 @@ import { GoogleGenAI } from "@google/genai";
 export async function getPetInsight(petName: string, recentActivity: string) {
   try {
     const apiKey = process.env.API_KEY;
-    if (!apiKey) return "Continue monitorando a felicidade do seu pet com o UPet!";
+    if (!apiKey) return "Monitore as atividades diárias para receber dicas personalizadas! 🐾";
     
     const ai = new GoogleGenAI({ apiKey });
     const response = await ai.models.generateContent({
       model: 'gemini-3-flash-preview',
       contents: `Gere um "UPet Smart Insight" curto, amigável e prático (máximo 2 frases) em Português do Brasil para um pet chamado ${petName}. 
-      Contexto recente: ${recentActivity}. Use um emoji relevante no final.`,
+      Contexto recente: ${recentActivity}. Seja motivador. Use um emoji relevante no final.`,
     });
-    return response.text || "Continue monitorando a felicidade do seu pet com o UPet!";
+    return response.text || "Continue cuidando bem do seu pet com o UPet! ✨";
   } catch (error: any) {
-    console.error("Gemini Error:", error);
-    return "Tente adicionar uma sessão extra de brincadeiras hoje à noite! 🎾";
+    console.error("Gemini Insight Error:", error);
+    return "Tente uma sessão extra de brincadeiras hoje à noite! 🎾";
   }
 }
 
@@ -34,8 +34,8 @@ export async function checkFoodSafety(food: string) {
     });
     return JSON.parse(response.text || '{}');
   } catch (error) {
-    console.error("Food Safety Gemini Error:", error);
-    return { safe: false, explanation: "Sempre consulte um veterinário antes de oferecer novos alimentos.", warning: "Possível toxicidade ou erro na conexão." };
+    console.error("Food Safety Error:", error);
+    return { safe: false, explanation: "Consulte um veterinário. Tivemos um erro na verificação automática.", warning: "Verifique sua conexão ou chave de API." };
   }
 }
 
@@ -63,14 +63,11 @@ export async function searchVeterinaryClinics(query: string, lat?: number, lng?:
 
     const response = await ai.models.generateContent({
       model: "gemini-2.5-flash",
-      contents: `Encontre clínicas veterinárias e hospitais pet para a busca: "${query}". Forneça uma lista amigável e mencione os nomes das clínicas.`,
+      contents: `Busque clínicas veterinárias reais para: "${query}".`,
       config,
     });
 
-    // Extrair chunks de grounding que contêm os links reais do Maps
     const groundingChunks = response.candidates?.[0]?.groundingMetadata?.groundingChunks || [];
-    
-    // Transformar chunks em um formato mais fácil para o componente
     const locations = groundingChunks
       .filter((chunk: any) => chunk.maps)
       .map((chunk: any) => ({
@@ -84,6 +81,6 @@ export async function searchVeterinaryClinics(query: string, lat?: number, lng?:
     };
   } catch (error) {
     console.error("Maps Grounding Error:", error);
-    return { text: "Não foi possível buscar clínicas no momento. Verifique sua chave de API.", locations: [] };
+    return { text: "Não conseguimos buscar clínicas agora. Verifique sua chave de acesso.", locations: [] };
   }
 }

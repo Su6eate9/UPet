@@ -63,16 +63,38 @@ const App: React.FC = () => {
   const [activePetId, setActivePetId] = useState<string>(INITIAL_PETS[0].id);
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [notifications, setNotifications] = useState<AppNotification[]>(INITIAL_NOTIFICATIONS);
+  const [needsApiKey, setNeedsApiKey] = useState(false);
 
   const activePet = pets.find(p => p.id === activePetId) || pets[0];
 
   useEffect(() => {
+    const checkKey = async () => {
+      // Verifica se existe chave no ambiente ou se o usuário já selecionou uma
+      const hasKey = process.env.API_KEY && process.env.API_KEY !== "";
+      if (!hasKey) {
+        const aistudio = (window as any).aistudio;
+        if (aistudio && typeof aistudio.hasSelectedApiKey === 'function') {
+          const selected = await aistudio.hasSelectedApiKey();
+          if (!selected) setNeedsApiKey(true);
+        }
+      }
+    };
+    checkKey();
+
     if (isDarkMode) {
       document.documentElement.classList.add('dark');
     } else {
       document.documentElement.classList.remove('dark');
     }
   }, [isDarkMode]);
+
+  const handleConnectKey = async () => {
+    const aistudio = (window as any).aistudio;
+    if (aistudio && typeof aistudio.openSelectKey === 'function') {
+      await aistudio.openSelectKey();
+      setNeedsApiKey(false); // Prossegue imediatamente conforme as diretrizes
+    }
+  };
 
   const handleAddPet = (newPetData: any) => {
     const newPet: Pet = {
@@ -126,6 +148,38 @@ const App: React.FC = () => {
     }));
   };
 
+  if (needsApiKey) {
+    return (
+      <div className="w-full h-dvh flex flex-col items-center justify-center p-8 bg-background-light dark:bg-background-dark text-center animate-in fade-in duration-500">
+        <Logo size="lg" className="mb-12" />
+        <div className="bg-white dark:bg-card-dark p-10 rounded-[48px] shadow-2xl border border-gray-100 dark:border-gray-800 max-w-sm w-full">
+          <div className="size-24 rounded-[32px] bg-primary/10 text-primary flex items-center justify-center mx-auto mb-8">
+            <span className="material-symbols-outlined text-6xl">smart_toy</span>
+          </div>
+          <h1 className="text-3xl font-black mb-4 dark:text-white tracking-tight">UPet Talk AI</h1>
+          <p className="text-sm text-text-muted dark:text-gray-400 mb-10 leading-relaxed font-medium">
+            Para ativar as funções inteligentes de diagnóstico e chat veterinário, conecte sua chave do Google Gemini.
+          </p>
+          <button 
+            onClick={handleConnectKey}
+            className="w-full h-16 rounded-full bg-primary text-white font-black text-lg shadow-xl shadow-primary/30 active:scale-95 transition-all flex items-center justify-center gap-3"
+          >
+            <span className="material-symbols-outlined">api</span>
+            Ativar IA Grátis
+          </button>
+          <a 
+            href="https://ai.google.dev/gemini-api/docs/billing" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="block mt-8 text-[10px] font-black text-primary uppercase tracking-widest hover:underline"
+          >
+            Sobre faturamento do Google
+          </a>
+        </div>
+      </div>
+    );
+  }
+
   const renderScreen = () => {
     switch (currentScreen) {
       case 'HOME': return <Dashboard activePet={activePet} pets={pets} setActivePet={(p) => setActivePetId(p.id)} navigate={setCurrentScreen} hasNewNotifications={notifications.some(n => !n.read)} />;
@@ -154,13 +208,10 @@ const App: React.FC = () => {
 
   return (
     <div className="w-full h-dvh max-w-md md:max-w-4xl mx-auto bg-background-light dark:bg-background-dark relative md:shadow-2xl flex flex-col overflow-hidden transition-all duration-300">
-      {/* Safe Area Top Spacer */}
       <div className="pt-safe bg-background-light dark:bg-background-dark shrink-0" />
-
       <main className="flex-1 overflow-y-auto no-scrollbar relative">
         {renderScreen()}
       </main>
-
       {showNav && (
         <nav className="shrink-0 bg-white/95 dark:bg-card-dark/95 backdrop-blur-lg border-t border-gray-100 dark:border-gray-800 px-4 md:px-12 flex items-start justify-between z-50 rounded-t-[32px] shadow-[0_-8px_20px_rgba(0,0,0,0.05)] transition-colors h-[88px] pb-safe pt-2">
           <button onClick={() => setCurrentScreen('HOME')} className={`flex flex-col items-center gap-1 w-16 transition-all ${currentScreen === 'HOME' ? 'text-primary' : 'text-gray-400'}`}>
@@ -171,13 +222,11 @@ const App: React.FC = () => {
             <span className={`material-symbols-outlined text-[28px] ${currentScreen === 'SCHEDULE' ? 'fill-current' : ''}`}>calendar_today</span>
             <span className="text-[10px] font-bold">Agenda</span>
           </button>
-          
           <div className="relative -top-7">
             <button onClick={() => setCurrentScreen('ADD_RECORD')} className="size-16 md:size-20 rounded-full bg-primary text-white shadow-xl shadow-primary/40 flex items-center justify-center hover:scale-110 active:scale-95 border-4 border-white dark:border-background-dark transition-all">
               <span className="material-symbols-outlined text-4xl">add</span>
             </button>
           </div>
-
           <button onClick={() => setCurrentScreen('COMMUNITY')} className={`flex flex-col items-center gap-1 w-16 transition-all ${currentScreen === 'COMMUNITY' ? 'text-primary' : 'text-gray-400'}`}>
             <span className={`material-symbols-outlined text-[28px] ${currentScreen === 'COMMUNITY' ? 'fill-current' : ''}`}>groups</span>
             <span className="text-[10px] font-bold">Social</span>
@@ -188,7 +237,6 @@ const App: React.FC = () => {
           </button>
         </nav>
       )}
-
       {currentScreen === 'HOME' && (
         <button 
           onClick={() => setCurrentScreen('CHAT')}
