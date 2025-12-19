@@ -66,8 +66,29 @@
         
         html.dark { background-color: #102216; }
 
-        /* Ajuste para inputs não darem zoom no iOS */
         input, textarea, select { font-size: 16px !important; }
+
+        /* Bloqueio de Orientação Visual */
+        #orientation-blocker {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+            background-color: #102216;
+            color: white;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 2rem;
+        }
+
+        /* Detecta orientação horizontal em dispositivos móveis/tablets */
+        @media screen and (orientation: landscape) and (max-width: 1024px) {
+            #orientation-blocker {
+                display: flex;
+            }
+        }
     </style>
 <script type="importmap">
 {
@@ -81,6 +102,11 @@
 </script>
 </head>
 <body class="bg-background-light dark:bg-background-dark font-sans text-text-main dark:text-text-light transition-colors duration-200">
+    <div id="orientation-blocker" class="font-display">
+        <span class="material-symbols-outlined text-primary text-6xl mb-4 animate-bounce">screen_rotation</span>
+        <h1 class="text-2xl font-black mb-2">Por favor, use o celular em pé</h1>
+        <p class="text-gray-400 font-medium">O CuidaPet foi desenhado para ser usado na vertical para uma melhor experiência.</p>
+    </div>
     <div id="root"></div>
     <script type="module" src="./index.tsx"></script>
 </body>
