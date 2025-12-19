@@ -22,15 +22,21 @@ const ChatAssistant: React.FC<ChatAssistantProps> = ({ activePet, navigate }) =>
     scrollRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, isTyping]);
 
-  const initChat = () => {
-    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  const getValidApiKey = () => {
+    const key = process.env.API_KEY;
+    if (!key || key === "" || key === "undefined" || key === "null") return null;
+    return key;
+  };
+
+  const initChat = (apiKey: string) => {
+    const ai = new GoogleGenAI({ apiKey });
     return ai.chats.create({
       model: 'gemini-3-flash-preview',
       config: {
         systemInstruction: `Você é um veterinário assistente especialista em cuidados de animais domésticos para o aplicativo UPet. 
         O usuário está perguntando sobre seu pet chamado ${activePet.name}, que é um ${activePet.species} da raça ${activePet.breed}. 
         Use formatação rica: use **negrito** para termos importantes, crie listas com "-" se necessário, e organize a resposta em parágrafos curtos.
-        Seja amigável, conciso e sempre recomende um veterinário real se o problema parecer urgente. Reforce que você faz parte do ecossistema UPet.`
+        Seja amigável, conciso e sempre recomenda um veterinário real se o problema parecer urgente. Reforce que você faz parte do ecossistema UPet.`
       },
     });
   };
@@ -43,9 +49,26 @@ const ChatAssistant: React.FC<ChatAssistantProps> = ({ activePet, navigate }) =>
     setMessages(prev => [...prev, { role: 'user', text: userText }]);
     setIsTyping(true);
 
+    const apiKey = getValidApiKey();
+
+    // Lógica de Demo se não houver Chave
+    if (!apiKey) {
+      setTimeout(() => {
+        const demoResponses = [
+          `Como estou no **Modo de Demonstração**, não consigo dar um diagnóstico em tempo real, mas baseado na raça **${activePet.breed}**, recomendo manter as vacinas em dia e observar o apetite.`,
+          `Isso parece uma dúvida interessante sobre o **${activePet.name}**! Em uma consulta real via IA, eu analisaria todo o histórico de saúde dele para te responder com precisão.`,
+          `Para dúvidas sobre comportamento de **${activePet.species}s**, geralmente recomendamos reforço positivo e rotina de passeios. Conecte sua chave Gemini para uma consultoria personalizada!`
+        ];
+        const text = demoResponses[Math.floor(Math.random() * demoResponses.length)];
+        setMessages(prev => [...prev, { role: 'model', text }]);
+        setIsTyping(false);
+      }, 1500);
+      return;
+    }
+
     try {
       if (!chatRef.current) {
-        chatRef.current = initChat();
+        chatRef.current = initChat(apiKey);
       }
 
       const streamResponse = await chatRef.current.sendMessageStream({ message: userText });
@@ -66,28 +89,9 @@ const ChatAssistant: React.FC<ChatAssistantProps> = ({ activePet, navigate }) =>
       }
     } catch (error: any) {
       console.error("Chat Error:", error);
-      const isApiKeyError = error.message?.includes("API Key") || error.message?.includes("entity was not found");
-      
-      setMessages(prev => [
-        ...prev, 
-        { 
-          role: 'model', 
-          text: isApiKeyError 
-            ? "Ops! Sua conexão com a IA expirou. Clique no botão abaixo para reconectar e continuar nosso papo. 🐾" 
-            : "Tive um probleminha técnico aqui. Pode tentar enviar de novo? 📡" 
-        }
-      ]);
+      setMessages(prev => [...prev, { role: 'model', text: "Tive um probleminha técnico aqui. Pode tentar enviar de novo? 📡" }]);
     } finally {
       setIsTyping(false);
-    }
-  };
-
-  const handleReconnect = async () => {
-    const aistudio = (window as any).aistudio;
-    if (aistudio && typeof aistudio.openSelectKey === 'function') {
-      await aistudio.openSelectKey();
-      chatRef.current = null; // Reinicia a instância com a nova chave
-      setMessages(prev => [...prev, { role: 'model', text: "Tudo certo! Chave reconectada. Como posso ajudar agora? ✨" }]);
     }
   };
 
@@ -110,8 +114,7 @@ const ChatAssistant: React.FC<ChatAssistantProps> = ({ activePet, navigate }) =>
     });
   };
 
-  const lastMessage = messages[messages.length - 1];
-  const isKeyError = lastMessage?.text.includes("reconnectar") || lastMessage?.text.includes("expirou");
+  const isDemo = !getValidApiKey();
 
   return (
     <div className="flex flex-col h-full bg-white dark:bg-background-dark animate-in slide-in-from-right duration-300">
@@ -123,12 +126,21 @@ const ChatAssistant: React.FC<ChatAssistantProps> = ({ activePet, navigate }) =>
           <Logo size="sm" showText={false} />
           <div>
             <h2 className="font-bold dark:text-white leading-tight">UPet Talk AI</h2>
-            <p className="text-[10px] text-primary font-bold uppercase tracking-widest">IA Veterinária Ativa</p>
+            <p className="text-[10px] text-primary font-bold uppercase tracking-widest">
+              {isDemo ? 'Modo de Teste (Demo)' : 'IA Veterinária Ativa'}
+            </p>
           </div>
         </div>
       </header>
 
       <div className="flex-1 overflow-y-auto p-4 space-y-4 no-scrollbar">
+        {isDemo && (
+          <div className="p-3 bg-primary/10 rounded-2xl border border-primary/20 mb-4">
+            <p className="text-[10px] text-primary font-black uppercase text-center tracking-widest">
+              Nenhuma chave de API detectada. Usando respostas simuladas.
+            </p>
+          </div>
+        )}
         {messages.map((msg, i) => (
           <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
             <div className={`max-w-[85%] p-4 rounded-3xl text-sm leading-relaxed shadow-sm border ${
@@ -141,20 +153,12 @@ const ChatAssistant: React.FC<ChatAssistantProps> = ({ activePet, navigate }) =>
               ) : (
                 <div className="flex flex-col">
                   {formatMessage(msg.text)}
-                  {isKeyError && i === messages.length - 1 && (
-                    <button 
-                      onClick={handleReconnect}
-                      className="mt-4 w-full h-11 bg-primary text-white rounded-xl font-bold text-xs uppercase tracking-widest shadow-lg shadow-primary/20 active:scale-95 transition-all"
-                    >
-                      Reconectar Agora
-                    </button>
-                  )}
                 </div>
               )}
             </div>
           </div>
         ))}
-        {isTyping && lastMessage.role === 'user' && (
+        {isTyping && (
           <div className="flex justify-start">
             <div className="bg-gray-50 dark:bg-card-dark p-4 rounded-3xl rounded-tl-none flex gap-1 items-center border border-gray-100 dark:border-gray-800 shadow-sm">
               <div className="size-1.5 bg-primary rounded-full animate-bounce" />
@@ -183,7 +187,6 @@ const ChatAssistant: React.FC<ChatAssistantProps> = ({ activePet, navigate }) =>
             <span className="material-symbols-outlined font-bold">send</span>
           </button>
         </div>
-        <p className="text-[9px] text-center text-gray-400 mt-2 font-bold uppercase tracking-widest">Powered by Gemini 3 Flash</p>
       </div>
     </div>
   );

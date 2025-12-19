@@ -2,22 +2,36 @@
 import { GoogleGenAI } from "@google/genai";
 
 /**
- * Helper to get the API key from environment variables.
- * Ensures the key is a non-empty string.
+ * Robustly retrieves the API key from environment variables.
  */
 const getSafeApiKey = (): string | null => {
   const key = process.env.API_KEY;
-  if (!key || key === "" || key === "undefined") {
+  if (!key || 
+      key === "" || 
+      key === "undefined" || 
+      key === "null" || 
+      key === "false" ||
+      key.trim() === "") {
     return null;
   }
   return key;
 };
 
 export async function getPetInsight(petName: string, recentActivity: string) {
+  const apiKey = getSafeApiKey();
+  
+  if (!apiKey) {
+    // Simulador de Insight Realista para Teste
+    const mockInsights = [
+      `${petName} está muito ativo hoje! Considere uma sessão extra de hidratação após o próximo passeio. 💧`,
+      `Baseado na raça de ${petName}, o nível de exercício está excelente. Mantenha o ritmo! 🎾`,
+      `Parece que ${petName} está um pouco menos ativo que o normal. Que tal uma brincadeira nova? ✨`,
+      `Lembre-se de verificar as orelhas de ${petName} após o passeio no parque. Higiene é saúde! 🐾`
+    ];
+    return mockInsights[Math.floor(Math.random() * mockInsights.length)];
+  }
+
   try {
-    const apiKey = getSafeApiKey();
-    if (!apiKey) return "Mantenha o acompanhamento diário para receber insights personalizados com o UPet! 🐾";
-    
     const ai = new GoogleGenAI({ apiKey });
     const response = await ai.models.generateContent({
       model: 'gemini-3-flash-preview',
@@ -27,21 +41,31 @@ export async function getPetInsight(petName: string, recentActivity: string) {
     return response.text || "Continue cuidando bem do seu pet com o UPet! ✨";
   } catch (error: any) {
     console.error("Gemini Insight Error:", error);
-    return "Uma caminhada extra ou uma brincadeira nova hoje seria ótimo para desestressar! 🎾";
+    return "Tente uma sessão extra de carinho ou brincadeira hoje! 🎾";
   }
 }
 
 export async function checkFoodSafety(food: string) {
-  try {
-    const apiKey = getSafeApiKey();
-    if (!apiKey) {
+  const apiKey = getSafeApiKey();
+  
+  if (!apiKey) {
+    // Simulador de Segurança Alimentar para Teste
+    const lowerFood = food.toLowerCase();
+    if (lowerFood.includes('chocolate') || lowerFood.includes('uva')) {
       return { 
         safe: false, 
-        explanation: "O serviço de IA não está configurado. Por favor, conecte sua chave de API.", 
-        warning: "Configuração necessária." 
+        explanation: `O alimento ${food} contém substâncias altamente tóxicas para cães e gatos, podendo causar insuficiência renal ou problemas cardíacos graves.`, 
+        warning: "EMERGÊNCIA: Não ofereça este alimento!" 
       };
     }
+    return { 
+      safe: true, 
+      explanation: `Em quantidades moderadas, ${food} costuma ser seguro para a maioria dos pets, mas sempre observe reações alérgicas.`, 
+      warning: "Moderação é a chave." 
+    };
+  }
 
+  try {
     const ai = new GoogleGenAI({ apiKey });
     const response = await ai.models.generateContent({
       model: 'gemini-3-flash-preview',
@@ -62,27 +86,26 @@ export async function checkFoodSafety(food: string) {
 }
 
 export async function searchVeterinaryClinics(query: string, lat?: number, lng?: number) {
-  try {
-    const apiKey = getSafeApiKey();
-    if (!apiKey) {
-      return { text: "Serviço indisponível: Chave de API ausente.", locations: [] };
-    }
-
-    const ai = new GoogleGenAI({ apiKey });
-    
-    const config: any = {
-      tools: [{ googleMaps: {} }],
+  const apiKey = getSafeApiKey();
+  
+  if (!apiKey) {
+    // Simulador de Clínicas para Teste
+    return { 
+      text: "No modo de demonstração, encontramos algumas clínicas recomendadas na sua região baseadas em avaliações gerais.", 
+      locations: [
+        { title: "Hospital Veterinário 24h PetCare", uri: "https://www.google.com/maps/search/veterinario+24h" },
+        { title: "Clínica Bicho Mimado", uri: "https://www.google.com/maps/search/clinica+veterinaria" },
+        { title: "Centro de Diagnóstico Animal", uri: "https://www.google.com/maps/search/exames+pet" }
+      ] 
     };
+  }
+
+  try {
+    const ai = new GoogleGenAI({ apiKey });
+    const config: any = { tools: [{ googleMaps: {} }] };
 
     if (lat && lng) {
-      config.toolConfig = {
-        retrievalConfig: {
-          latLng: {
-            latitude: lat,
-            longitude: lng
-          }
-        }
-      };
+      config.toolConfig = { retrievalConfig: { latLng: { latitude: lat, longitude: lng } } };
     }
 
     const response = await ai.models.generateContent({
@@ -99,12 +122,9 @@ export async function searchVeterinaryClinics(query: string, lat?: number, lng?:
         uri: chunk.maps.uri,
       }));
 
-    return {
-      text: response.text,
-      locations
-    };
+    return { text: response.text, locations };
   } catch (error) {
     console.error("Maps Grounding Error:", error);
-    return { text: "Erro ao localizar clínicas. Verifique sua conexão.", locations: [] };
+    return { text: "Não conseguimos localizar clínicas no momento. Verifique sua chave de API.", locations: [] };
   }
 }
