@@ -24,21 +24,16 @@ const ChatAssistant: React.FC<ChatAssistantProps> = ({ activePet, navigate }) =>
   const handleSend = async () => {
     if (!input.trim() || isTyping) return;
 
-    const apiKey = process.env.API_KEY;
-    if (!apiKey) {
-      setMessages(prev => [...prev, { role: 'model', text: "A chave da API não foi detectada. Por favor, reinicie o app ou conecte sua chave." }]);
-      return;
-    }
-
     const userMsg: Message = { role: 'user', text: input };
     setMessages(prev => [...prev, userMsg]);
     setInput('');
     setIsTyping(true);
 
     try {
-      const ai = new GoogleGenAI({ apiKey });
-      const chat = ai.chats.create({
+      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+      const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
+        contents: input,
         config: {
           systemInstruction: `Você é um veterinário assistente especialista em cuidados de animais domésticos para o aplicativo UPet. 
           O usuário está perguntando sobre seu pet chamado ${activePet.name}, que é um ${activePet.species} da raça ${activePet.breed}. 
@@ -47,31 +42,14 @@ const ChatAssistant: React.FC<ChatAssistantProps> = ({ activePet, navigate }) =>
         }
       });
 
-      const response = await chat.sendMessage({ message: input });
       const modelText = response.text || "Desculpe, tive um problema para processar sua dúvida. 🐾";
       
       setMessages(prev => [...prev, { role: 'model', text: modelText }]);
     } catch (error: any) {
       console.error("Chat Error:", error);
-      
-      if (error.message?.includes("Requested entity was not found") || error.message?.includes("API Key")) {
-        setMessages(prev => [...prev, { 
-          role: 'model', 
-          text: "Houve um problema com a sua chave de API. Por favor, clique no botão abaixo para selecionar novamente." 
-        }]);
-      } else {
-        setMessages(prev => [...prev, { role: 'model', text: "Ocorreu um erro na conexão. Tente novamente em breve! 📡" }]);
-      }
+      setMessages(prev => [...prev, { role: 'model', text: "Ocorreu um erro na conexão. Verifique se a API Key está configurada corretamente no ambiente. 📡" }]);
     } finally {
       setIsTyping(false);
-    }
-  };
-
-  const handleFixKey = async () => {
-    const aistudio = (window as any).aistudio;
-    if (aistudio && typeof aistudio.openSelectKey === 'function') {
-      await aistudio.openSelectKey();
-      setMessages(prev => [...prev, { role: 'model', text: "Chave atualizada! Pode tentar enviar sua mensagem novamente. 🐾" }]);
     }
   };
 
@@ -94,9 +72,6 @@ const ChatAssistant: React.FC<ChatAssistantProps> = ({ activePet, navigate }) =>
       );
     });
   };
-
-  const lastMessage = messages[messages.length - 1];
-  const showFixButton = lastMessage?.text.includes("chave de API");
 
   return (
     <div className="flex flex-col h-full bg-white dark:bg-background-dark">
@@ -138,16 +113,6 @@ const ChatAssistant: React.FC<ChatAssistantProps> = ({ activePet, navigate }) =>
               <div className="size-1.5 bg-primary rounded-full animate-bounce [animation-delay:0.2s]" />
               <div className="size-1.5 bg-primary rounded-full animate-bounce [animation-delay:0.4s]" />
             </div>
-          </div>
-        )}
-        {showFixButton && (
-          <div className="flex justify-center p-4">
-            <button 
-              onClick={handleFixKey}
-              className="px-6 py-3 bg-primary text-white rounded-full font-bold shadow-lg shadow-primary/20 animate-in zoom-in-90 duration-300"
-            >
-              Reconectar Chave API
-            </button>
           </div>
         )}
         <div ref={scrollRef} />
