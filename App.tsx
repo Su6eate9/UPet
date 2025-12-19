@@ -19,6 +19,7 @@ import Notifications from './components/Notifications';
 import NotificationCenter from './components/NotificationCenter';
 import Settings from './components/Settings';
 import BrandKit from './components/BrandKit';
+import Logo from './components/Logo';
 
 const INITIAL_NOTIFICATIONS: AppNotification[] = [
   { id: '1', title: 'Meta Atingida! 🏆', description: 'Rex completou a meta de caminhada de hoje.', type: 'ACTIVITY', time: '5 min atrás', read: false },
@@ -62,16 +63,37 @@ const App: React.FC = () => {
   const [activePetId, setActivePetId] = useState<string>(INITIAL_PETS[0].id);
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [notifications, setNotifications] = useState<AppNotification[]>(INITIAL_NOTIFICATIONS);
+  const [needsApiKey, setNeedsApiKey] = useState(false);
 
   const activePet = pets.find(p => p.id === activePetId) || pets[0];
 
   useEffect(() => {
+    // Verificar se a chave da API já foi selecionada no ambiente AI Studio
+    const checkApiKey = async () => {
+      const aistudio = (window as any).aistudio;
+      if (aistudio && typeof aistudio.hasSelectedApiKey === 'function') {
+        const hasKey = await aistudio.hasSelectedApiKey();
+        if (!hasKey) {
+          setNeedsApiKey(true);
+        }
+      }
+    };
+    checkApiKey();
+
     if (isDarkMode) {
       document.documentElement.classList.add('dark');
     } else {
       document.documentElement.classList.remove('dark');
     }
   }, [isDarkMode]);
+
+  const handleConnectKey = async () => {
+    const aistudio = (window as any).aistudio;
+    if (aistudio && typeof aistudio.openSelectKey === 'function') {
+      await aistudio.openSelectKey();
+      setNeedsApiKey(false); // Prosseguir imediatamente conforme as regras
+    }
+  };
 
   const handleAddPet = (newPetData: any) => {
     const newPet: Pet = {
@@ -124,6 +146,38 @@ const App: React.FC = () => {
       return p;
     }));
   };
+
+  if (needsApiKey) {
+    return (
+      <div className="w-full h-dvh flex flex-col items-center justify-center p-8 bg-background-light dark:bg-background-dark text-center">
+        <Logo size="lg" className="mb-12" />
+        <div className="bg-white dark:bg-card-dark p-8 rounded-[40px] shadow-2xl border border-gray-100 dark:border-gray-800 max-w-sm w-full animate-in zoom-in-95 duration-500">
+          <div className="size-20 rounded-3xl bg-primary/10 text-primary flex items-center justify-center mx-auto mb-6">
+            <span className="material-symbols-outlined text-5xl">key</span>
+          </div>
+          <h1 className="text-2xl font-black mb-3 dark:text-white">Conecte o UPet AI</h1>
+          <p className="text-sm text-text-muted dark:text-gray-400 mb-8 leading-relaxed">
+            Para usar as funções inteligentes de saúde e o chat veterinário, você precisa conectar sua chave do Google Gemini.
+          </p>
+          <button 
+            onClick={handleConnectKey}
+            className="w-full h-16 rounded-full bg-primary text-white font-black text-lg shadow-xl shadow-primary/30 active:scale-95 transition-all flex items-center justify-center gap-3"
+          >
+            <span className="material-symbols-outlined">api</span>
+            Conectar Chave API
+          </button>
+          <a 
+            href="https://ai.google.dev/gemini-api/docs/billing" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="block mt-6 text-[10px] font-bold text-primary uppercase tracking-widest hover:underline"
+          >
+            Saiba mais sobre faturamento
+          </a>
+        </div>
+      </div>
+    );
+  }
 
   const renderScreen = () => {
     switch (currentScreen) {
