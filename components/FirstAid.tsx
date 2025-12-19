@@ -117,10 +117,20 @@ const FirstAid: React.FC<FirstAidProps> = ({ navigate }) => {
       </header>
 
       <div className="p-6 md:px-10 flex flex-col gap-6">
-        <a href="tel:193" className="w-full h-16 rounded-3xl bg-red-600 active:bg-red-700 text-white font-black text-xl flex items-center justify-center gap-4 shadow-xl shadow-red-600/30 active:scale-[0.98] transition-all">
-          <span className="material-symbols-outlined text-3xl animate-pulse">emergency</span>
-          Ligar para Emergência
-        </a>
+        <div className="flex flex-col gap-3">
+          <a href="tel:193" className="w-full h-16 rounded-3xl bg-red-600 active:bg-red-700 text-white font-black text-xl flex items-center justify-center gap-4 shadow-xl shadow-red-600/30 active:scale-[0.98] transition-all">
+            <span className="material-symbols-outlined text-3xl animate-pulse">emergency</span>
+            Ligar para Emergência
+          </a>
+          
+          <button 
+            onClick={() => navigate('CLINICS')}
+            className="w-full h-14 rounded-3xl bg-white dark:bg-card-dark text-primary border-2 border-primary/20 font-black text-sm flex items-center justify-center gap-3 active:scale-[0.98] transition-all shadow-sm"
+          >
+            <span className="material-symbols-outlined text-2xl">local_hospital</span>
+            Encontrar Clínicas 24h Próximas
+          </button>
+        </div>
 
         <div className="bg-white dark:bg-card-dark rounded-3xl border border-gray-100 dark:border-gray-800 h-16 flex items-center px-6 gap-4 focus-within:border-primary focus-within:ring-4 ring-primary/10 transition-all">
           <span className="material-symbols-outlined text-gray-400 text-2xl">search</span>

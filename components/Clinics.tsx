@@ -51,6 +51,22 @@ const Clinics: React.FC<ClinicsProps> = ({ navigate }) => {
     }
   };
 
+  // Função para formatar o texto da IA (negritos e parágrafos)
+  const formatAiText = (text: string) => {
+    return text.split('\n').map((line, i) => {
+      if (!line.trim()) return <div key={i} className="h-2" />;
+      
+      const processedLine = line.replace(/\*\*(.*?)\*\*/g, '<strong class="font-black text-primary">$1</strong>');
+      return (
+        <p 
+          key={i} 
+          className="text-sm md:text-base text-text-main dark:text-gray-300 leading-relaxed mb-2 last:mb-0"
+          dangerouslySetInnerHTML={{ __html: processedLine }}
+        />
+      );
+    });
+  };
+
   return (
     <div className="flex flex-col h-full bg-background-light dark:bg-background-dark animate-in fade-in duration-500">
       {/* Top Banner / Map Visual */}
@@ -108,57 +124,67 @@ const Clinics: React.FC<ClinicsProps> = ({ navigate }) => {
         ) : (
           <div className="flex-1 overflow-y-auto no-scrollbar space-y-4 pb-10">
             {aiResponse && (
-              <div className="bg-primary/5 border border-primary/10 p-4 rounded-2xl mb-4">
-                <p className="text-xs text-primary font-black uppercase tracking-widest mb-2 flex items-center gap-1">
-                  <span className="material-symbols-outlined text-sm">auto_awesome</span>
-                  Recomendação UPet
-                </p>
-                <p className="text-sm dark:text-gray-300 leading-relaxed italic">{aiResponse}</p>
+              <div className="bg-gradient-to-br from-primary/10 to-transparent border border-primary/10 p-5 rounded-[28px] mb-6 relative overflow-hidden group">
+                <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:scale-110 transition-transform">
+                   <span className="material-symbols-outlined text-6xl text-primary">auto_awesome</span>
+                </div>
+                <div className="relative z-10">
+                  <p className="text-[10px] text-primary font-black uppercase tracking-[0.2em] mb-3 flex items-center gap-2">
+                    <span className="material-symbols-outlined text-sm">smart_toy</span>
+                    UPet Smart Recommendation
+                  </p>
+                  <div className="space-y-1">
+                    {formatAiText(aiResponse)}
+                  </div>
+                </div>
               </div>
             )}
 
             {results.length > 0 ? (
-              results.map((clinic, i) => (
-                <div key={i} className="bg-white dark:bg-card-dark p-5 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-800 flex flex-col gap-4 animate-in slide-in-from-bottom duration-500" style={{ animationDelay: `${i * 100}ms` }}>
-                  <div className="flex justify-between items-start">
-                    <div className="flex items-start gap-3">
-                      <div className="size-12 rounded-2xl bg-blue-50 dark:bg-blue-900/20 text-blue-500 flex items-center justify-center shrink-0">
-                        <span className="material-symbols-outlined text-3xl">local_hospital</span>
-                      </div>
-                      <div>
-                        <h4 className="font-black text-lg dark:text-white leading-tight pr-4">{clinic.title}</h4>
-                        <div className="flex items-center gap-1 mt-1 text-primary">
-                          <span className="material-symbols-outlined text-[14px] fill-current">stars</span>
-                          <span className="text-[10px] font-black uppercase tracking-tighter">Verificada no UPet</span>
+              <div className="space-y-4">
+                <h4 className="text-xs font-black text-text-muted uppercase tracking-widest px-2">Resultados Próximos</h4>
+                {results.map((clinic, i) => (
+                  <div key={i} className="bg-white dark:bg-card-dark p-5 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-800 flex flex-col gap-4 animate-in slide-in-from-bottom duration-500" style={{ animationDelay: `${i * 100}ms` }}>
+                    <div className="flex justify-between items-start">
+                      <div className="flex items-start gap-3">
+                        <div className="size-12 rounded-2xl bg-blue-50 dark:bg-blue-900/20 text-blue-500 flex items-center justify-center shrink-0">
+                          <span className="material-symbols-outlined text-3xl">local_hospital</span>
+                        </div>
+                        <div>
+                          <h4 className="font-black text-lg dark:text-white leading-tight pr-4">{clinic.title}</h4>
+                          <div className="flex items-center gap-1 mt-1 text-primary">
+                            <span className="material-symbols-outlined text-[14px] fill-current">stars</span>
+                            <span className="text-[10px] font-black uppercase tracking-tighter">Verificada no UPet</span>
+                          </div>
                         </div>
                       </div>
+                      <div className="flex flex-col items-end">
+                        <div className="bg-green-50 dark:bg-green-900/20 px-2 py-0.5 rounded text-[10px] font-black text-green-600 uppercase">Aberto</div>
+                      </div>
                     </div>
-                    <div className="flex flex-col items-end">
-                      <div className="bg-green-50 dark:bg-green-900/20 px-2 py-0.5 rounded text-[10px] font-black text-green-600 uppercase">Aberto</div>
+                    
+                    <div className="flex gap-2">
+                      <a 
+                        href={clinic.uri} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="flex-1 h-12 rounded-2xl bg-primary text-white font-black text-sm flex items-center justify-center gap-2 shadow-lg shadow-primary/20 active:scale-95 transition-all"
+                      >
+                        <span className="material-symbols-outlined text-xl">map</span>
+                        Ver no Mapa
+                      </a>
+                      <a 
+                        href={`tel:000000000`}
+                        className="size-12 rounded-2xl bg-gray-50 dark:bg-gray-800 text-text-main dark:text-white flex items-center justify-center border border-gray-100 dark:border-gray-700 active:scale-95 transition-all"
+                      >
+                        <span className="material-symbols-outlined">call</span>
+                      </a>
                     </div>
                   </div>
-                  
-                  <div className="flex gap-2">
-                    <a 
-                      href={clinic.uri} 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="flex-1 h-12 rounded-2xl bg-primary text-white font-black text-sm flex items-center justify-center gap-2 shadow-lg shadow-primary/20 active:scale-95 transition-all"
-                    >
-                      <span className="material-symbols-outlined text-xl">map</span>
-                      Ver no Mapa
-                    </a>
-                    <a 
-                      href={`tel:000000000`} // Em um app real, o Gemini poderia fornecer o telefone também se solicitado no prompt
-                      className="size-12 rounded-2xl bg-gray-50 dark:bg-gray-800 text-text-main dark:text-white flex items-center justify-center border border-gray-100 dark:border-gray-700 active:scale-95 transition-all"
-                    >
-                      <span className="material-symbols-outlined">call</span>
-                    </a>
-                  </div>
-                </div>
-              ))
+                ))}
+              </div>
             ) : !loading && (
-              <div className="flex flex-col items-center justify-center py-20 text-center opacity-40">
+              <div className="flex-1 flex flex-col items-center justify-center py-20 text-center opacity-40">
                 <span className="material-symbols-outlined text-6xl mb-4">location_off</span>
                 <p className="font-bold text-lg">Nenhuma clínica encontrada.</p>
                 <p className="text-sm">Tente buscar por outro termo ou cidade.</p>

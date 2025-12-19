@@ -50,7 +50,10 @@ const AIInsights: React.FC<AIInsightsProps> = ({ navigate }) => {
               <div className="h-full bg-red-500 w-[85%] rounded-full" />
             </div>
           </div>
-          <button className="w-full h-11 rounded-xl bg-primary text-white font-bold shadow-lg shadow-primary/20 hover:brightness-105 transition-all">
+          <button 
+            onClick={() => navigate('CLINICS')}
+            className="w-full h-11 rounded-xl bg-primary text-white font-bold shadow-lg shadow-primary/20 hover:brightness-105 active:scale-95 transition-all"
+          >
             Find Clinics
           </button>
         </div>
