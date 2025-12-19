@@ -14,7 +14,8 @@ const HealthProfile: React.FC<HealthProfileProps> = ({ activePet, navigate }) =>
         <button onClick={() => navigate('HOME')} className="p-2 -ml-2 rounded-full hover:bg-gray-100 dark:hover:bg-white/5 transition-colors">
           <span className="material-symbols-outlined">arrow_back_ios_new</span>
         </button>
-        <h1 class="text-lg font-bold tracking-tight">Health Profile</h1>
+        {/* Fix: Changed 'class' to 'className' to resolve React attribute error */}
+        <h1 className="text-lg font-bold tracking-tight">Health Profile</h1>
         <button className="text-base font-bold text-primary">Edit</button>
       </div>
 

@@ -1,16 +1,18 @@
 
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-br" class="h-full">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CuidaPet</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>CuidaPet - Smart Pet Companion</title>
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
     <script>
+        window.process = { env: { API_KEY: "" } };
+
         tailwind.config = {
             darkMode: "class",
             theme: {
@@ -37,10 +39,37 @@
         }
     </script>
     <style>
+        :root {
+            --sat: env(safe-area-inset-top);
+            --sar: env(safe-area-inset-right);
+            --sab: env(safe-area-inset-bottom);
+            --sal: env(safe-area-inset-left);
+        }
+
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-        body { -webkit-tap-highlight-color: transparent; }
-        .pb-safe { padding-bottom: env(safe-area-inset-bottom, 20px); }
+        
+        body { 
+            -webkit-tap-highlight-color: transparent; 
+            overscroll-behavior-y: none;
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        #root {
+            height: 100%;
+            width: 100%;
+        }
+
+        .pt-safe { padding-top: var(--sat); }
+        .pb-safe { padding-bottom: var(--sab); }
+        
+        html.dark { background-color: #102216; }
+
+        /* Ajuste para inputs não darem zoom no iOS */
+        input, textarea, select { font-size: 16px !important; }
     </style>
 <script type="importmap">
 {
@@ -55,5 +84,6 @@
 </head>
 <body class="bg-background-light dark:bg-background-dark font-sans text-text-main dark:text-text-light transition-colors duration-200">
     <div id="root"></div>
+    <script type="module" src="./index.tsx"></script>
 </body>
 </html>

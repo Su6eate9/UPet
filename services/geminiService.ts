@@ -1,7 +1,8 @@
 
 import { GoogleGenAI } from "@google/genai";
 
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
+// Fix: Strictly follow initialization guidelines for GoogleGenAI
+const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
 export async function getPetInsight(petName: string, recentActivity: string) {
   try {

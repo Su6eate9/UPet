@@ -2,7 +2,8 @@
 import React, { useState } from 'react';
 
 interface OnboardingProps {
-  onComplete: () => void;
+  // Fix: changed onComplete signature to accept data to match handleAddPet in App.tsx
+  onComplete: (data: any) => void;
   onBack: () => void;
 }
 
@@ -18,7 +19,8 @@ const Onboarding: React.FC<OnboardingProps> = ({ onComplete, onBack }) => {
 
   const nextStep = () => {
     if (step < 4) setStep(step + 1);
-    else onComplete();
+    // Fix: pass formData to onComplete to fulfill the expected argument
+    else onComplete(formData);
   };
 
   const renderStep = () => {

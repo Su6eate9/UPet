@@ -29,7 +29,8 @@ const ChatAssistant: React.FC<ChatAssistantProps> = ({ activePet, navigate }) =>
     setIsTyping(true);
 
     try {
-      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
+      // Fix: Strictly follow initialization guidelines for GoogleGenAI
+      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
       const chat = ai.chats.create({
         model: 'gemini-3-flash-preview',
         config: {
@@ -51,13 +52,10 @@ const ChatAssistant: React.FC<ChatAssistantProps> = ({ activePet, navigate }) =>
     }
   };
 
-  // Função para processar formatação simples (Negrito e Listas)
   const formatMessage = (text: string) => {
     return text.split('\n').map((line, i) => {
-      // Processa negrito: **texto**
       let processedLine = line.replace(/\*\*(.*?)\*\*/g, '<strong class="font-black text-text-main dark:text-white">$1</strong>');
       
-      // Processa listas simples: - item ou * item
       if (line.trim().startsWith('- ') || line.trim().startsWith('* ')) {
         return (
           <div key={i} className="flex gap-2 ml-1 mb-1">
@@ -138,7 +136,7 @@ const ChatAssistant: React.FC<ChatAssistantProps> = ({ activePet, navigate }) =>
             <span className="material-symbols-outlined">send</span>
           </button>
         </div>
-        <p className="text-[10px] text-center text-gray-400 mt-2">Dica: Pergunte sobre dieta, sintomas ou truques!</p>
+        <p className="text-[10px] text-center text-gray-400 mt-2">Dica: Pergunte sobre dieta, sintomas or truques!</p>
       </div>
     </div>
   );
