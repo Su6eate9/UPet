@@ -10,7 +10,7 @@ interface ChatAssistantProps {
 
 const ChatAssistant: React.FC<ChatAssistantProps> = ({ activePet, navigate }) => {
   const [messages, setMessages] = useState<Message[]>([
-    { role: 'model', text: `Oi! Eu sou o assistente IA do CuidaPet. Como posso ajudar com o ${activePet.name} hoje?` }
+    { role: 'model', text: `Oi! Eu sou o assistente IA do CuidaPet. Como posso ajudar com o **${activePet.name}** hoje?` }
   ]);
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
@@ -35,6 +35,7 @@ const ChatAssistant: React.FC<ChatAssistantProps> = ({ activePet, navigate }) =>
         config: {
           systemInstruction: `Você é um veterinário assistente especialista em cuidados de animais domésticos para o aplicativo CuidaPet. 
           O usuário está perguntando sobre seu pet chamado ${activePet.name}, que é um ${activePet.species} da raça ${activePet.breed}. 
+          Use formatação rica: use **negrito** para termos importantes, crie listas com "-" se necessário, e organize a resposta em parágrafos curtos.
           Seja amigável, conciso e sempre recomende um veterinário real se o problema parecer urgente.`
         }
       });
@@ -48,6 +49,29 @@ const ChatAssistant: React.FC<ChatAssistantProps> = ({ activePet, navigate }) =>
     } finally {
       setIsTyping(false);
     }
+  };
+
+  // Função para processar formatação simples (Negrito e Listas)
+  const formatMessage = (text: string) => {
+    return text.split('\n').map((line, i) => {
+      // Processa negrito: **texto**
+      let processedLine = line.replace(/\*\*(.*?)\*\*/g, '<strong class="font-black text-text-main dark:text-white">$1</strong>');
+      
+      // Processa listas simples: - item ou * item
+      if (line.trim().startsWith('- ') || line.trim().startsWith('* ')) {
+        return (
+          <div key={i} className="flex gap-2 ml-1 mb-1">
+            <span className="text-primary mt-1 text-[8px]">●</span>
+            <span dangerouslySetInnerHTML={{ __html: processedLine.substring(2) }} />
+          </div>
+        );
+      }
+
+      return (
+        <p key={i} className={line.trim() === '' ? 'h-2' : 'mb-2'} 
+           dangerouslySetInnerHTML={{ __html: processedLine }} />
+      );
+    });
   };
 
   return (
@@ -70,21 +94,27 @@ const ChatAssistant: React.FC<ChatAssistantProps> = ({ activePet, navigate }) =>
       <div className="flex-1 overflow-y-auto p-4 space-y-4 no-scrollbar">
         {messages.map((msg, i) => (
           <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-            <div className={`max-w-[85%] p-4 rounded-3xl text-sm leading-relaxed shadow-sm ${
+            <div className={`max-w-[85%] p-4 rounded-3xl text-sm leading-relaxed shadow-sm border ${
               msg.role === 'user' 
-                ? 'bg-primary text-white rounded-tr-none' 
-                : 'bg-gray-100 dark:bg-card-dark dark:text-gray-200 rounded-tl-none'
+                ? 'bg-primary border-primary text-white rounded-tr-none' 
+                : 'bg-gray-50 dark:bg-card-dark dark:text-gray-300 border-gray-100 dark:border-gray-800 rounded-tl-none'
             }`}>
-              {msg.text}
+              {msg.role === 'user' ? (
+                <p className="whitespace-pre-line font-medium">{msg.text}</p>
+              ) : (
+                <div className="flex flex-col">
+                  {formatMessage(msg.text)}
+                </div>
+              )}
             </div>
           </div>
         ))}
         {isTyping && (
           <div className="flex justify-start">
-            <div className="bg-gray-100 dark:bg-card-dark p-4 rounded-3xl rounded-tl-none flex gap-1 items-center">
-              <div className="size-1.5 bg-gray-400 rounded-full animate-bounce" />
-              <div className="size-1.5 bg-gray-400 rounded-full animate-bounce [animation-delay:0.2s]" />
-              <div className="size-1.5 bg-gray-400 rounded-full animate-bounce [animation-delay:0.4s]" />
+            <div className="bg-gray-50 dark:bg-card-dark p-4 rounded-3xl rounded-tl-none flex gap-1 items-center border border-gray-100 dark:border-gray-800">
+              <div className="size-1.5 bg-primary rounded-full animate-bounce" />
+              <div className="size-1.5 bg-primary rounded-full animate-bounce [animation-delay:0.2s]" />
+              <div className="size-1.5 bg-primary rounded-full animate-bounce [animation-delay:0.4s]" />
             </div>
           </div>
         )}

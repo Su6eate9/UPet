@@ -8,6 +8,15 @@ export type Task = {
   icon: string;
 };
 
+export type AppNotification = {
+  id: string;
+  title: string;
+  description: string;
+  type: 'HEALTH' | 'ACTIVITY' | 'SOCIAL' | 'SYSTEM';
+  time: string;
+  read: boolean;
+};
+
 export type Pet = {
   id: string;
   name: string;
@@ -38,6 +47,7 @@ export type Screen =
   | 'MY_PETS'
   | 'SUBSCRIPTION'
   | 'NOTIFICATIONS'
+  | 'NOTIFICATION_CENTER'
   | 'SETTINGS';
 
 export type ActivityType = 'WALK' | 'FOOD' | 'WATER' | 'MEDS';

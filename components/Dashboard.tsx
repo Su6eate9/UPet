@@ -8,9 +8,10 @@ interface DashboardProps {
   pets: Pet[];
   setActivePet: (pet: Pet) => void;
   navigate: (screen: Screen) => void;
+  hasNewNotifications?: boolean;
 }
 
-const Dashboard: React.FC<DashboardProps> = ({ activePet, pets, setActivePet, navigate }) => {
+const Dashboard: React.FC<DashboardProps> = ({ activePet, pets, setActivePet, navigate, hasNewNotifications }) => {
   const [insight, setInsight] = useState<string>("Analisando as atividades do seu pet...");
   const [loadingInsight, setLoadingInsight] = useState(false);
 
@@ -43,9 +44,14 @@ const Dashboard: React.FC<DashboardProps> = ({ activePet, pets, setActivePet, na
             <p className="text-xs font-medium text-text-muted dark:text-gray-400">Bom dia</p>
           </div>
         </div>
-        <button className="flex items-center justify-center size-10 rounded-full bg-white dark:bg-card-dark shadow-sm text-text-main dark:text-white hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors relative">
+        <button 
+          onClick={() => navigate('NOTIFICATION_CENTER')}
+          className="flex items-center justify-center size-10 rounded-full bg-white dark:bg-card-dark shadow-sm text-text-main dark:text-white hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors relative"
+        >
           <span className="material-symbols-outlined">notifications</span>
-          <span className="absolute top-2 right-2.5 size-2 bg-accent-orange rounded-full" />
+          {hasNewNotifications && (
+            <span className="absolute top-2 right-2.5 size-2.5 bg-accent-orange rounded-full border-2 border-white dark:border-card-dark animate-pulse" />
+          )}
         </button>
       </header>
 

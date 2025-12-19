@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Screen, Pet, ActivityType } from './types';
+import { Screen, Pet, ActivityType, AppNotification } from './types';
 import Dashboard from './components/Dashboard';
 import HealthProfile from './components/HealthProfile';
 import Clinics from './components/Clinics';
@@ -16,7 +16,15 @@ import Schedule from './components/Schedule';
 import MyPets from './components/MyPets';
 import Subscription from './components/Subscription';
 import Notifications from './components/Notifications';
+import NotificationCenter from './components/NotificationCenter';
 import Settings from './components/Settings';
+
+const INITIAL_NOTIFICATIONS: AppNotification[] = [
+  { id: '1', title: 'Meta Atingida! 🏆', description: 'Rex completou a meta de caminhada de hoje.', type: 'ACTIVITY', time: '5 min atrás', read: false },
+  { id: '2', title: 'Alerta de Hidratação 💧', description: 'Luna não bebeu água nas últimas 4 horas.', type: 'HEALTH', time: '1 hora atrás', read: false },
+  { id: '3', title: 'Novo Comentário ❤️', description: 'Sarah M. comentou na foto do Buster.', type: 'SOCIAL', time: '2 horas atrás', read: true },
+  { id: '4', title: 'Vacinação Próxima 💉', description: 'Reforço de Raiva vence em 7 dias.', type: 'HEALTH', time: '1 dia atrás', read: true },
+];
 
 const INITIAL_PETS: Pet[] = [
   {
@@ -52,6 +60,7 @@ const App: React.FC = () => {
   const [pets, setPets] = useState<Pet[]>(INITIAL_PETS);
   const [activePetId, setActivePetId] = useState<string>(INITIAL_PETS[0].id);
   const [isDarkMode, setIsDarkMode] = useState(false);
+  const [notifications, setNotifications] = useState<AppNotification[]>(INITIAL_NOTIFICATIONS);
 
   const activePet = pets.find(p => p.id === activePetId) || pets[0];
 
@@ -82,6 +91,10 @@ const App: React.FC = () => {
     setCurrentScreen('HOME');
   };
 
+  const markAllAsRead = () => {
+    setNotifications(notifications.map(n => ({ ...n, read: true })));
+  };
+
   const handleDeletePet = (id: string) => {
     const filtered = pets.filter(p => p.id !== id);
     if (filtered.length === 0) {
@@ -110,7 +123,7 @@ const App: React.FC = () => {
   const renderScreen = () => {
     switch (currentScreen) {
       case 'HOME':
-        return <Dashboard activePet={activePet} pets={pets} setActivePet={(p) => setActivePetId(p.id)} navigate={setCurrentScreen} />;
+        return <Dashboard activePet={activePet} pets={pets} setActivePet={(p) => setActivePetId(p.id)} navigate={setCurrentScreen} hasNewNotifications={notifications.some(n => !n.read)} />;
       case 'HEALTH':
         return <HealthProfile activePet={activePet} navigate={setCurrentScreen} />;
       case 'INSIGHTS':
@@ -137,16 +150,18 @@ const App: React.FC = () => {
         return <Subscription navigate={setCurrentScreen} />;
       case 'NOTIFICATIONS':
         return <Notifications navigate={setCurrentScreen} />;
+      case 'NOTIFICATION_CENTER':
+        return <NotificationCenter navigate={setCurrentScreen} notifications={notifications} markAllAsRead={markAllAsRead} />;
       case 'SETTINGS':
         return <Settings navigate={setCurrentScreen} isDark={isDarkMode} onToggleTheme={() => setIsDarkMode(!isDarkMode)} />;
       case 'ONBOARDING':
         return <Onboarding onComplete={handleAddPet} onBack={() => setCurrentScreen('HOME')} />;
       default:
-        return <Dashboard activePet={activePet} pets={pets} setActivePet={(p) => setActivePetId(p.id)} navigate={setCurrentScreen} />;
+        return <Dashboard activePet={activePet} pets={pets} setActivePet={(p) => setActivePetId(p.id)} navigate={setCurrentScreen} hasNewNotifications={notifications.some(n => !n.read)} />;
     }
   };
 
-  const showNav = !['ONBOARDING', 'ADD_RECORD', 'CHAT', 'SUBSCRIPTION', 'MY_PETS', 'NOTIFICATIONS', 'SETTINGS'].includes(currentScreen);
+  const showNav = !['ONBOARDING', 'ADD_RECORD', 'CHAT', 'SUBSCRIPTION', 'MY_PETS', 'NOTIFICATIONS', 'NOTIFICATION_CENTER', 'SETTINGS'].includes(currentScreen);
 
   return (
     <div className="max-w-md mx-auto min-h-screen bg-background-light dark:bg-background-dark relative shadow-2xl overflow-hidden flex flex-col">
@@ -158,7 +173,7 @@ const App: React.FC = () => {
         <nav className="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-white/90 dark:bg-card-dark/90 backdrop-blur-lg border-t border-gray-100 dark:border-gray-800 pb-safe pt-2 px-2 h-[88px] flex items-start justify-between z-50 rounded-t-[32px] shadow-[0_-8px_20px_rgba(0,0,0,0.05)] transition-colors">
           <button onClick={() => setCurrentScreen('HOME')} className={`flex flex-col items-center gap-1 w-12 transition-all ${currentScreen === 'HOME' ? 'text-primary scale-110' : 'text-gray-400'}`}>
             <span className={`material-symbols-outlined text-[26px] ${currentScreen === 'HOME' ? 'fill-current' : ''}`}>home</span>
-            <span className="text-[9px] font-bold">Home</span>
+            <span className="text-[9px] font-bold">Início</span>
           </button>
           <button onClick={() => setCurrentScreen('SCHEDULE')} className={`flex flex-col items-center gap-1 w-12 transition-all ${currentScreen === 'SCHEDULE' ? 'text-primary scale-110' : 'text-gray-400'}`}>
             <span className={`material-symbols-outlined text-[26px] ${currentScreen === 'SCHEDULE' ? 'fill-current' : ''}`}>calendar_today</span>
@@ -177,7 +192,7 @@ const App: React.FC = () => {
           </button>
           <button onClick={() => setCurrentScreen('PROFILE')} className={`flex flex-col items-center gap-1 w-12 transition-all ${currentScreen === 'PROFILE' ? 'text-primary scale-110' : 'text-gray-400'}`}>
             <span className={`material-symbols-outlined text-[26px] ${currentScreen === 'PROFILE' ? 'fill-current' : ''}`}>person</span>
-            <span className="text-[9px] font-bold">Profile</span>
+            <span className="text-[9px] font-bold">Perfil</span>
           </button>
         </nav>
       )}
