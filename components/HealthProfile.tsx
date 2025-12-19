@@ -1,35 +1,63 @@
 
-import React from 'react';
+import React, { useRef } from 'react';
 import { Pet, Screen } from '../types';
 
 interface HealthProfileProps {
   activePet: Pet;
   navigate: (screen: Screen) => void;
+  onUpdatePet: (pet: Pet) => void;
 }
 
-const HealthProfile: React.FC<HealthProfileProps> = ({ activePet, navigate }) => {
+const HealthProfile: React.FC<HealthProfileProps> = ({ activePet, navigate, onUpdatePet }) => {
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleAvatarClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const base64String = reader.result as string;
+        onUpdatePet({
+          ...activePet,
+          avatar: base64String
+        });
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   return (
     <div className="flex flex-col h-full pb-32">
       <div className="sticky top-0 z-50 bg-background-light/90 dark:bg-card-dark/90 backdrop-blur-md border-b border-gray-100 dark:border-gray-800 p-4 flex items-center justify-between">
         <button onClick={() => navigate('HOME')} className="p-2 -ml-2 rounded-full hover:bg-gray-100 dark:hover:bg-white/5 transition-colors">
           <span className="material-symbols-outlined">arrow_back_ios_new</span>
         </button>
-        {/* Fix: Changed 'class' to 'className' to resolve React attribute error */}
-        <h1 className="text-lg font-bold tracking-tight">Health Profile</h1>
+        <h1 className="text-lg font-bold tracking-tight dark:text-white">Health Profile</h1>
         <button className="text-base font-bold text-primary">Edit</button>
       </div>
 
       <div className="flex flex-col items-center pt-8 pb-6 px-4">
-        <div className="relative mb-4">
-          <div className="w-32 h-32 rounded-full p-1 bg-gradient-to-tr from-primary to-emerald-200 shadow-lg">
+        <div className="relative mb-4 group cursor-pointer" onClick={handleAvatarClick}>
+          <div className="w-32 h-32 rounded-full p-1 bg-gradient-to-tr from-primary to-emerald-200 shadow-lg transition-transform active:scale-95">
             <div 
-              className="w-full h-full rounded-full bg-cover bg-center border-4 border-white dark:border-card-dark"
+              className="w-full h-full rounded-full bg-cover bg-center border-4 border-white dark:border-card-dark overflow-hidden"
               style={{ backgroundImage: `url('${activePet.avatar}')` }}
             />
           </div>
-          <div className="absolute bottom-0 right-1 bg-white dark:bg-card-dark p-1.5 rounded-full shadow-md border border-gray-100 dark:border-gray-700">
-            <span className="material-symbols-outlined text-primary block" style={{ fontSize: '20px' }}>pets</span>
+          <div className="absolute bottom-0 right-1 bg-primary text-white p-1.5 rounded-full shadow-md border-2 border-white dark:border-card-dark flex items-center justify-center">
+            <span className="material-symbols-outlined block" style={{ fontSize: '18px' }}>edit</span>
           </div>
+          <input 
+            type="file" 
+            ref={fileInputRef} 
+            className="hidden" 
+            accept="image/*" 
+            onChange={handleFileChange}
+          />
         </div>
         <h2 className="text-2xl font-bold mb-1 dark:text-white">{activePet.name}</h2>
         <p className="text-text-muted text-sm font-medium mb-4">{activePet.breed}</p>

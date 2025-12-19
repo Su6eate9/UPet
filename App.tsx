@@ -107,6 +107,10 @@ const App: React.FC = () => {
     }
   };
 
+  const updatePet = (updatedPet: Pet) => {
+    setPets(prev => prev.map(p => p.id === updatedPet.id ? updatedPet : p));
+  };
+
   const updatePetActivity = (type: ActivityType, amount: number) => {
     setPets(prevPets => prevPets.map(p => {
       if (p.id === activePetId) {
@@ -124,7 +128,7 @@ const App: React.FC = () => {
   const renderScreen = () => {
     switch (currentScreen) {
       case 'HOME': return <Dashboard activePet={activePet} pets={pets} setActivePet={(p) => setActivePetId(p.id)} navigate={setCurrentScreen} hasNewNotifications={notifications.some(n => !n.read)} />;
-      case 'HEALTH': return <HealthProfile activePet={activePet} navigate={setCurrentScreen} />;
+      case 'HEALTH': return <HealthProfile activePet={activePet} navigate={setCurrentScreen} onUpdatePet={updatePet} />;
       case 'INSIGHTS': return <AIInsights navigate={setCurrentScreen} />;
       case 'CLINICS': return <Clinics navigate={setCurrentScreen} />;
       case 'FIRST_AID': return <FirstAid navigate={setCurrentScreen} />;

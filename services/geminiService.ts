@@ -32,3 +32,49 @@ export async function checkFoodSafety(food: string) {
     return { safe: false, explanation: "Sempre consulte um veterinário antes de oferecer novos alimentos.", warning: "Possível toxicidade." };
   }
 }
+
+export async function searchVeterinaryClinics(query: string, lat?: number, lng?: number) {
+  try {
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+    
+    const config: any = {
+      tools: [{ googleMaps: {} }],
+    };
+
+    if (lat && lng) {
+      config.toolConfig = {
+        retrievalConfig: {
+          latLng: {
+            latitude: lat,
+            longitude: lng
+          }
+        }
+      };
+    }
+
+    const response = await ai.models.generateContent({
+      model: "gemini-2.5-flash",
+      contents: `Encontre clínicas veterinárias e hospitais pet para a busca: "${query}". Forneça uma lista amigável e mencione os nomes das clínicas.`,
+      config,
+    });
+
+    // Extrair chunks de grounding que contêm os links reais do Maps
+    const groundingChunks = response.candidates?.[0]?.groundingMetadata?.groundingChunks || [];
+    
+    // Transformar chunks em um formato mais fácil para o componente
+    const locations = groundingChunks
+      .filter((chunk: any) => chunk.maps)
+      .map((chunk: any) => ({
+        title: chunk.maps.title,
+        uri: chunk.maps.uri,
+      }));
+
+    return {
+      text: response.text,
+      locations
+    };
+  } catch (error) {
+    console.error("Maps Grounding Error:", error);
+    return { text: "Não foi possível buscar clínicas no momento. Tente novamente.", locations: [] };
+  }
+}
