@@ -29,7 +29,7 @@ const ChatAssistant: React.FC<ChatAssistantProps> = ({ activePet, navigate }) =>
     setIsTyping(true);
 
     try {
-      // Fix: Strictly follow initialization guidelines for GoogleGenAI
+      // Cria a instância bem antes da chamada para garantir que process.env.API_KEY esteja populado
       const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
       const chat = ai.chats.create({
         model: 'gemini-3-flash-preview',
@@ -46,6 +46,7 @@ const ChatAssistant: React.FC<ChatAssistantProps> = ({ activePet, navigate }) =>
       
       setMessages(prev => [...prev, { role: 'model', text: modelText }]);
     } catch (error) {
+      console.error("Chat Error:", error);
       setMessages(prev => [...prev, { role: 'model', text: "Ocorreu um erro na conexão. Tente novamente em breve! 📡" }]);
     } finally {
       setIsTyping(false);
@@ -136,7 +137,7 @@ const ChatAssistant: React.FC<ChatAssistantProps> = ({ activePet, navigate }) =>
             <span className="material-symbols-outlined">send</span>
           </button>
         </div>
-        <p className="text-[10px] text-center text-gray-400 mt-2">Dica: Pergunte sobre dieta, sintomas or truques!</p>
+        <p className="text-[10px] text-center text-gray-400 mt-2">Dica: Pergunte sobre dieta, sintomas ou truques!</p>
       </div>
     </div>
   );

@@ -1,11 +1,9 @@
 
 import { GoogleGenAI } from "@google/genai";
 
-// Fix: Strictly follow initialization guidelines for GoogleGenAI
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-
 export async function getPetInsight(petName: string, recentActivity: string) {
   try {
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
     const response = await ai.models.generateContent({
       model: 'gemini-3-flash-preview',
       contents: `Gere um "Smart Insight" curto, amigável e prático (máximo 2 frases) em Português do Brasil para um pet chamado ${petName}. 
@@ -20,6 +18,7 @@ export async function getPetInsight(petName: string, recentActivity: string) {
 
 export async function checkFoodSafety(food: string) {
   try {
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
     const response = await ai.models.generateContent({
       model: 'gemini-3-flash-preview',
       contents: `O alimento ${food} é seguro para cães e gatos? Responda em formato JSON com as propriedades "safe" (boolean), "explanation" (string em PT-BR) e "warning" (string em PT-BR ou null).`,
@@ -29,6 +28,7 @@ export async function checkFoodSafety(food: string) {
     });
     return JSON.parse(response.text || '{}');
   } catch (error) {
+    console.error("Food Safety Gemini Error:", error);
     return { safe: false, explanation: "Sempre consulte um veterinário antes de oferecer novos alimentos.", warning: "Possível toxicidade." };
   }
 }
