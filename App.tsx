@@ -19,7 +19,6 @@ import Notifications from './components/Notifications';
 import NotificationCenter from './components/NotificationCenter';
 import Settings from './components/Settings';
 import BrandKit from './components/BrandKit';
-import Logo from './components/Logo';
 
 const INITIAL_NOTIFICATIONS: AppNotification[] = [
   { id: '1', title: 'Meta Atingida! 🏆', description: 'Rex completou a meta de caminhada de hoje.', type: 'ACTIVITY', time: '5 min atrás', read: false },
@@ -69,15 +68,26 @@ const App: React.FC = () => {
 
   useEffect(() => {
     const checkKey = async () => {
-      // Verifica se existe chave no ambiente ou se o usuário já selecionou uma
-      const hasKey = process.env.API_KEY && process.env.API_KEY !== "";
-      if (!hasKey) {
+      // Robust check for the API key in the environment
+      const envKey = process.env.API_KEY;
+      const hasValidEnvKey = envKey && envKey !== "" && envKey !== "undefined" && envKey !== "null";
+      
+      if (!hasValidEnvKey) {
         const aistudio = (window as any).aistudio;
         if (aistudio && typeof aistudio.hasSelectedApiKey === 'function') {
           const selected = await aistudio.hasSelectedApiKey();
-          if (!selected) setNeedsApiKey(true);
+          if (!selected) {
+            setNeedsApiKey(true);
+            return;
+          }
+        } else {
+          // If no key in env and no AI Studio selector, we definitely need to show the block
+          setNeedsApiKey(true);
+          return;
         }
       }
+      // If we got here, we have a key (either env or selected)
+      setNeedsApiKey(false);
     };
     checkKey();
 
@@ -91,12 +101,20 @@ const App: React.FC = () => {
   const handleConnectKey = async () => {
     const aistudio = (window as any).aistudio;
     if (aistudio && typeof aistudio.openSelectKey === 'function') {
-      await aistudio.openSelectKey();
-      setNeedsApiKey(false); // Prossegue imediatamente conforme as diretrizes
+      try {
+        await aistudio.openSelectKey();
+        // The rule says assume success immediately
+        setNeedsApiKey(false);
+      } catch (e) {
+        console.error("Error opening key selector:", e);
+      }
+    } else {
+      alert("Para usar o UPet no deploy, você precisa selecionar uma chave de API do Google AI Studio.");
     }
   };
 
   const handleAddPet = (newPetData: any) => {
+    // FIX: Added wellnessScore, hydration, and walks properties to match Pet type requirements
     const newPet: Pet = {
       id: Math.random().toString(36).substr(2, 9),
       name: newPetData.name,
@@ -115,138 +133,105 @@ const App: React.FC = () => {
     setCurrentScreen('HOME');
   };
 
-  const markAllAsRead = () => {
-    setNotifications(notifications.map(n => ({ ...n, read: true })));
+  const handleUpdatePet = (updatedPet: Pet) => {
+    setPets(pets.map(p => p.id === updatedPet.id ? updatedPet : p));
   };
 
   const handleDeletePet = (id: string) => {
-    const filtered = pets.filter(p => p.id !== id);
-    if (filtered.length === 0) {
-      setPets(INITIAL_PETS);
-      setActivePetId(INITIAL_PETS[0].id);
-    } else {
-      setPets(filtered);
-      if (activePetId === id) setActivePetId(filtered[0].id);
+    const remaining = pets.filter(p => p.id !== id);
+    if (remaining.length > 0) {
+      setPets(remaining);
+      setActivePetId(remaining[0].id);
     }
   };
 
-  const updatePet = (updatedPet: Pet) => {
-    setPets(prev => prev.map(p => p.id === updatedPet.id ? updatedPet : p));
-  };
-
-  const updatePetActivity = (type: ActivityType, amount: number) => {
-    setPets(prevPets => prevPets.map(p => {
+  const handleSaveRecord = (type: ActivityType, amount: number) => {
+    setPets(pets.map(p => {
       if (p.id === activePetId) {
-        if (type === 'WATER') {
-          return { ...p, hydration: { ...p.hydration, current: p.hydration.current + amount } };
-        }
-        if (type === 'WALK') {
-          return { ...p, walks: { ...p.walks, current: p.walks.current + amount } };
-        }
+        if (type === 'WATER') return { ...p, hydration: { ...p.hydration, current: p.hydration.current + amount } };
+        if (type === 'WALK') return { ...p, walks: { ...p.walks, current: p.walks.current + amount } };
       }
       return p;
     }));
   };
 
-  if (needsApiKey) {
-    return (
-      <div className="w-full h-dvh flex flex-col items-center justify-center p-8 bg-background-light dark:bg-background-dark text-center animate-in fade-in duration-500">
-        <Logo size="lg" className="mb-12" />
-        <div className="bg-white dark:bg-card-dark p-10 rounded-[48px] shadow-2xl border border-gray-100 dark:border-gray-800 max-w-sm w-full">
-          <div className="size-24 rounded-[32px] bg-primary/10 text-primary flex items-center justify-center mx-auto mb-8">
-            <span className="material-symbols-outlined text-6xl">smart_toy</span>
-          </div>
-          <h1 className="text-3xl font-black mb-4 dark:text-white tracking-tight">UPet Talk AI</h1>
-          <p className="text-sm text-text-muted dark:text-gray-400 mb-10 leading-relaxed font-medium">
-            Para ativar as funções inteligentes de diagnóstico e chat veterinário, conecte sua chave do Google Gemini.
-          </p>
-          <button 
-            onClick={handleConnectKey}
-            className="w-full h-16 rounded-full bg-primary text-white font-black text-lg shadow-xl shadow-primary/30 active:scale-95 transition-all flex items-center justify-center gap-3"
-          >
-            <span className="material-symbols-outlined">api</span>
-            Ativar IA Grátis
-          </button>
-          <a 
-            href="https://ai.google.dev/gemini-api/docs/billing" 
-            target="_blank" 
-            rel="noopener noreferrer"
-            className="block mt-8 text-[10px] font-black text-primary uppercase tracking-widest hover:underline"
-          >
-            Sobre faturamento do Google
-          </a>
-        </div>
-      </div>
-    );
-  }
+  const markAllAsRead = () => {
+    setNotifications(notifications.map(n => ({ ...n, read: true })));
+  };
 
   const renderScreen = () => {
+    if (needsApiKey) {
+      return (
+        <div className="flex flex-col items-center justify-center h-full p-8 text-center bg-white dark:bg-background-dark">
+          <div className="size-24 rounded-full bg-primary/10 flex items-center justify-center mb-6">
+            <span className="material-symbols-outlined text-5xl text-primary">key</span>
+          </div>
+          <h2 className="text-2xl font-black mb-2 dark:text-white">Conecte o UPet ao Google AI Studio</h2>
+          <p className="text-text-muted mb-8 text-sm">Para usar os recursos inteligentes de IA, insights e mapas, você precisa selecionar uma chave de API paga.</p>
+          <button 
+            onClick={handleConnectKey}
+            className="w-full h-14 rounded-full bg-primary text-white font-black shadow-lg shadow-primary/20 active:scale-95 transition-all"
+          >
+            Selecionar Chave de API
+          </button>
+          <a href="https://ai.google.dev/gemini-api/docs/billing" target="_blank" rel="noreferrer" className="mt-4 text-xs font-bold text-primary underline">Saiba mais sobre faturamento</a>
+        </div>
+      );
+    }
+
     switch (currentScreen) {
       case 'HOME': return <Dashboard activePet={activePet} pets={pets} setActivePet={(p) => setActivePetId(p.id)} navigate={setCurrentScreen} hasNewNotifications={notifications.some(n => !n.read)} />;
-      case 'HEALTH': return <HealthProfile activePet={activePet} navigate={setCurrentScreen} onUpdatePet={updatePet} />;
+      case 'HEALTH': return <HealthProfile activePet={activePet} navigate={setCurrentScreen} onUpdatePet={handleUpdatePet} />;
       case 'INSIGHTS': return <AIInsights navigate={setCurrentScreen} />;
       case 'CLINICS': return <Clinics navigate={setCurrentScreen} />;
       case 'FIRST_AID': return <FirstAid navigate={setCurrentScreen} />;
       case 'FOOD_SAFETY': return <FoodSafety navigate={setCurrentScreen} />;
-      case 'COMMUNITY': return <Community navigate={setCurrentScreen} />;
-      case 'PROFILE': return <Profile navigate={setCurrentScreen} onToggleTheme={() => setIsDarkMode(!isDarkMode)} isDark={isDarkMode} />;
-      case 'ADD_RECORD': return <AddRecord activePet={activePet} navigate={setCurrentScreen} onSave={updatePetActivity} />;
+      case 'ONBOARDING': return <Onboarding onComplete={handleAddPet} onBack={() => setCurrentScreen('HOME')} />;
+      case 'ADD_RECORD': return <AddRecord activePet={activePet} navigate={setCurrentScreen} onSave={handleSaveRecord} />;
       case 'CHAT': return <ChatAssistant activePet={activePet} navigate={setCurrentScreen} />;
       case 'SCHEDULE': return <Schedule navigate={setCurrentScreen} />;
+      case 'COMMUNITY': return <Community navigate={setCurrentScreen} />;
+      case 'PROFILE': return <Profile navigate={setCurrentScreen} onToggleTheme={() => setIsDarkMode(!isDarkMode)} isDark={isDarkMode} />;
       case 'MY_PETS': return <MyPets pets={pets} navigate={setCurrentScreen} onDelete={handleDeletePet} />;
       case 'SUBSCRIPTION': return <Subscription navigate={setCurrentScreen} />;
       case 'NOTIFICATIONS': return <Notifications navigate={setCurrentScreen} />;
-      case 'NOTIFICATION_CENTER': return <NotificationCenter navigate={setCurrentScreen} notifications={notifications} markAllAsRead={markAllAsRead} />;
+      case 'NOTIFICATION_CENTER': return <NotificationCenter notifications={notifications} navigate={setCurrentScreen} markAllAsRead={markAllAsRead} />;
       case 'SETTINGS': return <Settings navigate={setCurrentScreen} isDark={isDarkMode} onToggleTheme={() => setIsDarkMode(!isDarkMode)} />;
       case 'BRAND_KIT': return <BrandKit navigate={setCurrentScreen} />;
-      case 'ONBOARDING': return <Onboarding onComplete={handleAddPet} onBack={() => setCurrentScreen('HOME')} />;
-      default: return <Dashboard activePet={activePet} pets={pets} setActivePet={(p) => setActivePetId(p.id)} navigate={setCurrentScreen} hasNewNotifications={notifications.some(n => !n.read)} />;
+      default: return <Dashboard activePet={activePet} pets={pets} setActivePet={(p) => setActivePetId(p.id)} navigate={setCurrentScreen} />;
     }
   };
 
-  const showNav = !['ONBOARDING', 'ADD_RECORD', 'CHAT', 'SUBSCRIPTION', 'MY_PETS', 'NOTIFICATIONS', 'NOTIFICATION_CENTER', 'SETTINGS', 'BRAND_KIT'].includes(currentScreen);
+  const showNav = !['ONBOARDING', 'ADD_RECORD', 'CHAT', 'NOTIFICATION_CENTER', 'BRAND_KIT'].includes(currentScreen);
 
   return (
-    <div className="w-full h-dvh max-w-md md:max-w-4xl mx-auto bg-background-light dark:bg-background-dark relative md:shadow-2xl flex flex-col overflow-hidden transition-all duration-300">
-      <div className="pt-safe bg-background-light dark:bg-background-dark shrink-0" />
+    <div className={`flex flex-col h-dvh bg-background-light dark:bg-background-dark transition-colors duration-500`}>
       <main className="flex-1 overflow-y-auto no-scrollbar relative">
         {renderScreen()}
       </main>
+
       {showNav && (
-        <nav className="shrink-0 bg-white/95 dark:bg-card-dark/95 backdrop-blur-lg border-t border-gray-100 dark:border-gray-800 px-4 md:px-12 flex items-start justify-between z-50 rounded-t-[32px] shadow-[0_-8px_20px_rgba(0,0,0,0.05)] transition-colors h-[88px] pb-safe pt-2">
-          <button onClick={() => setCurrentScreen('HOME')} className={`flex flex-col items-center gap-1 w-16 transition-all ${currentScreen === 'HOME' ? 'text-primary' : 'text-gray-400'}`}>
-            <span className={`material-symbols-outlined text-[28px] ${currentScreen === 'HOME' ? 'fill-current' : ''}`}>home</span>
-            <span className="text-[10px] font-bold">Início</span>
-          </button>
-          <button onClick={() => setCurrentScreen('SCHEDULE')} className={`flex flex-col items-center gap-1 w-16 transition-all ${currentScreen === 'SCHEDULE' ? 'text-primary' : 'text-gray-400'}`}>
-            <span className={`material-symbols-outlined text-[28px] ${currentScreen === 'SCHEDULE' ? 'fill-current' : ''}`}>calendar_today</span>
-            <span className="text-[10px] font-bold">Agenda</span>
-          </button>
-          <div className="relative -top-7">
-            <button onClick={() => setCurrentScreen('ADD_RECORD')} className="size-16 md:size-20 rounded-full bg-primary text-white shadow-xl shadow-primary/40 flex items-center justify-center hover:scale-110 active:scale-95 border-4 border-white dark:border-background-dark transition-all">
-              <span className="material-symbols-outlined text-4xl">add</span>
+        <nav className="h-20 bg-white/80 dark:bg-card-dark/80 backdrop-blur-lg border-t border-gray-100 dark:border-gray-800 flex items-center justify-around px-2 fixed bottom-0 left-0 right-0 z-50 max-w-md mx-auto rounded-t-3xl shadow-2xl">
+          {[
+            { id: 'HOME', icon: 'grid_view' },
+            { id: 'SCHEDULE', icon: 'calendar_today' },
+            { id: 'CHAT', icon: 'chat_bubble', primary: true },
+            { id: 'COMMUNITY', icon: 'groups' },
+            { id: 'PROFILE', icon: 'person' }
+          ].map((item) => (
+            <button 
+              key={item.id}
+              onClick={() => setCurrentScreen(item.id as Screen)}
+              className={`flex items-center justify-center transition-all duration-300 ${item.primary ? 'size-14 bg-primary text-white rounded-full -mt-10 shadow-xl shadow-primary/30 border-4 border-white dark:border-background-dark' : `size-12 rounded-2xl ${currentScreen === item.id ? 'text-primary bg-primary/5' : 'text-gray-400'}`}`}
+            >
+              <span className={`material-symbols-outlined ${item.primary ? 'text-3xl' : 'text-2xl'}`}>{item.icon}</span>
             </button>
-          </div>
-          <button onClick={() => setCurrentScreen('COMMUNITY')} className={`flex flex-col items-center gap-1 w-16 transition-all ${currentScreen === 'COMMUNITY' ? 'text-primary' : 'text-gray-400'}`}>
-            <span className={`material-symbols-outlined text-[28px] ${currentScreen === 'COMMUNITY' ? 'fill-current' : ''}`}>groups</span>
-            <span className="text-[10px] font-bold">Social</span>
-          </button>
-          <button onClick={() => setCurrentScreen('PROFILE')} className={`flex flex-col items-center gap-1 w-16 transition-all ${currentScreen === 'PROFILE' ? 'text-primary' : 'text-gray-400'}`}>
-            <span className={`material-symbols-outlined text-[28px] ${currentScreen === 'PROFILE' ? 'fill-current' : ''}`}>person</span>
-            <span className="text-[10px] font-bold">Perfil</span>
-          </button>
+          ))}
         </nav>
-      )}
-      {currentScreen === 'HOME' && (
-        <button 
-          onClick={() => setCurrentScreen('CHAT')}
-          className="fixed bottom-28 md:bottom-32 right-6 md:right-12 size-14 md:size-16 rounded-full bg-text-main dark:bg-white text-white dark:text-text-main shadow-2xl flex items-center justify-center z-40 animate-bounce active:scale-90 transition-all"
-        >
-          <span className="material-symbols-outlined text-3xl">smart_toy</span>
-        </button>
       )}
     </div>
   );
 };
 
+// FIX: Added default export to fix the error in index.tsx
 export default App;

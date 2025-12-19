@@ -1,10 +1,22 @@
 
 import { GoogleGenAI } from "@google/genai";
 
+/**
+ * Helper to get the API key from environment variables.
+ * Ensures the key is a non-empty string.
+ */
+const getSafeApiKey = (): string | null => {
+  const key = process.env.API_KEY;
+  if (!key || key === "" || key === "undefined") {
+    return null;
+  }
+  return key;
+};
+
 export async function getPetInsight(petName: string, recentActivity: string) {
   try {
-    const apiKey = process.env.API_KEY;
-    if (!apiKey) return "Monitore as atividades diárias para receber dicas personalizadas! 🐾";
+    const apiKey = getSafeApiKey();
+    if (!apiKey) return "Mantenha o acompanhamento diário para receber insights personalizados com o UPet! 🐾";
     
     const ai = new GoogleGenAI({ apiKey });
     const response = await ai.models.generateContent({
@@ -15,14 +27,20 @@ export async function getPetInsight(petName: string, recentActivity: string) {
     return response.text || "Continue cuidando bem do seu pet com o UPet! ✨";
   } catch (error: any) {
     console.error("Gemini Insight Error:", error);
-    return "Tente uma sessão extra de brincadeiras hoje à noite! 🎾";
+    return "Uma caminhada extra ou uma brincadeira nova hoje seria ótimo para desestressar! 🎾";
   }
 }
 
 export async function checkFoodSafety(food: string) {
   try {
-    const apiKey = process.env.API_KEY;
-    if (!apiKey) throw new Error("API Key missing");
+    const apiKey = getSafeApiKey();
+    if (!apiKey) {
+      return { 
+        safe: false, 
+        explanation: "O serviço de IA não está configurado. Por favor, conecte sua chave de API.", 
+        warning: "Configuração necessária." 
+      };
+    }
 
     const ai = new GoogleGenAI({ apiKey });
     const response = await ai.models.generateContent({
@@ -35,14 +53,20 @@ export async function checkFoodSafety(food: string) {
     return JSON.parse(response.text || '{}');
   } catch (error) {
     console.error("Food Safety Error:", error);
-    return { safe: false, explanation: "Consulte um veterinário. Tivemos um erro na verificação automática.", warning: "Verifique sua conexão ou chave de API." };
+    return { 
+      safe: false, 
+      explanation: "Não foi possível verificar a segurança deste alimento no momento.", 
+      warning: "Consulte um especialista." 
+    };
   }
 }
 
 export async function searchVeterinaryClinics(query: string, lat?: number, lng?: number) {
   try {
-    const apiKey = process.env.API_KEY;
-    if (!apiKey) throw new Error("API Key missing");
+    const apiKey = getSafeApiKey();
+    if (!apiKey) {
+      return { text: "Serviço indisponível: Chave de API ausente.", locations: [] };
+    }
 
     const ai = new GoogleGenAI({ apiKey });
     
@@ -81,6 +105,6 @@ export async function searchVeterinaryClinics(query: string, lat?: number, lng?:
     };
   } catch (error) {
     console.error("Maps Grounding Error:", error);
-    return { text: "Não conseguimos buscar clínicas agora. Verifique sua chave de acesso.", locations: [] };
+    return { text: "Erro ao localizar clínicas. Verifique sua conexão.", locations: [] };
   }
 }
