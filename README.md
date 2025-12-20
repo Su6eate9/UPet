@@ -1,7 +1,3 @@
-<div align="center">
-  <img width="600" alt="UPet Logo" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
-
 # UPet
 
 UPet é uma aplicação web inovadora para gestão de saúde, bem-estar e informações dos seus pets. Com integração de IA, UPet oferece insights inteligentes, acompanhamento de registros, notificações, agendamento de consultas, perfil de saúde, dicas de primeiros socorros, comunidade e muito mais.
