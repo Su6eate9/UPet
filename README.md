@@ -1,20 +1,44 @@
 <div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
+  <img width="600" alt="UPet Logo" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
 </div>
 
-# Run and deploy your AI Studio app
+# UPet
 
-This contains everything you need to run your app locally.
+UPet é uma aplicação web inovadora para gestão de saúde, bem-estar e informações dos seus pets. Com integração de IA, UPet oferece insights inteligentes, acompanhamento de registros, notificações, agendamento de consultas, perfil de saúde, dicas de primeiros socorros, comunidade e muito mais.
 
-View your app in AI Studio: https://ai.studio/apps/drive/1I6PL4uELO_Cn5Zr2hbXB2M37thUlC_qs
+## Funcionalidades principais
 
-## Run Locally
+- **Perfil de Saúde:** Gerencie informações clínicas, vacinas e histórico médico dos seus pets.
+- **Assistente de IA:** Receba recomendações personalizadas e tire dúvidas sobre cuidados com animais.
+- **Notificações:** Fique por dentro de lembretes de consultas, vacinas e novidades.
+- **Agendamento:** Marque consultas em clínicas parceiras diretamente pelo app.
+- **Comunidade:** Compartilhe experiências e dicas com outros tutores.
+- **Primeiros Socorros:** Acesse orientações rápidas para emergências.
+- **Kit de Marca:** Personalize a experiência visual do app.
 
-**Prerequisites:**  Node.js
+## Como usar
 
+**Pré-requisitos:** Node.js
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+1. Instale as dependências:
+   ```bash
+   npm install
+   ```
+2. Configure sua chave Gemini API em `.env.local`:
+   ```env
+   GEMINI_API_KEY=SEU_API_KEY_AQUI
+   ```
+3. Execute o app:
+   ```bash
+   npm run dev
+   ```
+
+O app estará disponível em `http://localhost:5173`.
+
+## Sobre o projeto
+
+UPet foi desenvolvido para facilitar a vida de tutores e promover o bem-estar animal, utilizando tecnologia de ponta e inteligência artificial.
+
+---
+
+Sinta-se à vontade para contribuir ou sugerir melhorias!
